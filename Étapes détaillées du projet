@@ -1,0 +1,102 @@
+###  Préparation de l’environnement
+
+1. Installation de **Windows Server 2016** dans une machine virtuelle dédiée.
+2. Attribution d’une **adresse IP fixe** au serveur.
+3. Renommage du serveur (ex. `SRV-AD-01`) pour une meilleure identification.
+4. Installation des rôles nécessaires :
+   - **Active Directory Domain Services (AD DS)**
+   - **DNS Server**
+5. Promotion du serveur en **contrôleur de domaine** avec création d’un domaine (ex. `mon-domaine.local`).
+
+---
+
+###  Organisation de l’Active Directory
+
+1. Création des **Unités d’Organisation (OU)** pour structurer le parc :
+   - `OU=Postes_Utilisateurs`
+   - `OU=Serveurs`
+   - `OU=Utilisateurs`
+2. Ajout des **comptes utilisateurs** et des **machines clientes** dans les bonnes OU.
+3. Vérification de la **bonne communication** entre les postes et le contrôleur de domaine (ping, `nslookup`, etc.).
+
+---
+
+###  Création des GPO sur Windows Server 2016
+
+1. Ouverture de la console **“Group Policy Management”**.
+2. Création d’une ou plusieurs **nouvelles GPO** (ex. `GPO_Config_Sécurité_Postes`, `GPO_Paramètres_Bureau`).
+3. Configuration des paramètres principaux, par exemple :
+   - Stratégies de **mot de passe** et de sécurité locale.
+   - Paramètres de **verrouillage de session**.
+   - Restrictions sur certaines fonctionnalités ou logiciels.
+   - Configuration de certains paramètres réseau ou Windows Update.
+4. Liaison des GPO aux OU concernées (ex. lier `GPO_Config_Sécurité_Postes` à `OU=Postes_Utilisateurs`).
+5. Sur un poste client, exécution de :
+   ```bash
+   gpupdate /force
+
+### Export des GPO pour utilisation avec Intune
+
+Dans la console de gestion des GPO, clic droit sur la GPO →
+“Backup…” / “Sauvegarder”.
+
+Choix d’un dossier de sauvegarde dédié (ex. D:\Sauvegarde_GPO_Intune\).
+
+Sauvegarde des GPO au format supporté (fichiers de configuration et .xml).
+
+Vérification que tous les paramètres nécessaires sont bien présents dans la sauvegarde.
+
+### Intégration des paramètres GPO dans Microsoft Intune
+
+Connexion au Centre d’administration Microsoft Endpoint Manager (Intune).
+
+Accès à la section :
+
+Devices → Group Policy analytics (ou équivalent selon la version).
+
+Import des fichiers GPO exportés depuis le serveur 2016.
+
+Analyse des stratégies par Intune :
+
+Identification des paramètres compatibles avec la gestion moderne.
+
+Vérification des éventuels paramètres non pris en charge.
+
+Création d’un profil de configuration dans Intune à partir de cette analyse :
+
+Type : Templates ou Custom selon les besoins.
+
+Reprise des paramètres issus des GPO.
+
+### Déploiement des stratégies via Intune
+
+Création ou utilisation d’un groupe de périphériques (ex. Groupe_Postes_Entreprise).
+
+Assignation du profil de configuration au groupe de périphériques ciblé.
+
+Vérification du statut de déploiement dans Intune :
+
+Nombre de postes en Success, Pending, Error.
+
+Sur un poste géré par Intune :
+
+Forcer une synchronisation (Synchroniser depuis Intune ou directement sur le client).
+
+Vérifier l’application des paramètres (sécurité, restrictions, etc.).
+
+### Résultat et apport du projet
+
+Mise en place d’une architecture hybride :
+Active Directory (GPO) + Microsoft Intune.
+
+Centralisation de la gestion du parc informatique (postes utilisateurs).
+
+Application automatisée de :
+
+Politiques de sécurité,
+
+Paramètres système,
+
+Restrictions et configurations standard.
+
+Gain en temps de gestion, en homogénéité des postes et en sécurité.
