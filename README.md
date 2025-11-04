@@ -1,0 +1,1 @@
+# gpo-intune-parc-informatique
